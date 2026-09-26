@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -58,7 +59,7 @@ class MainActivity:ComponentActivity(){
  ){pad->
   Column(Modifier.padding(pad).padding(16.dp).fillMaxSize()){
    when(tab){
-    0->Home(url,{url=it},{vm.analyzeAndAdd(url);url=""},{vm.add(url);url=""})
+    0->Home(url,{url=it},{vm.analyzeAndAdd(url);url=""},{vm.add(url);url=""},{browser.launch(Intent(context,BrowserActivity::class.java).apply{putExtra("url",url)})})
     1->DownloadList(items,vm)
     2->DownloadList(items,vm)
     3->SettingsScreen(vm)

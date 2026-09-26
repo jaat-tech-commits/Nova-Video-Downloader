@@ -13,7 +13,7 @@ import java.io.RandomAccessFile
 import java.util.UUID
 import kotlin.math.max
 
-data class DownloadItem(val id:String=UUID.randomUUID().toString(),val url:String,val fileName:String,val progress:Int=0,val total:Long=0,val status:String="Queued",val speedText:String="Waiting")
+data class DownloadItem(val id:String=UUID.randomUUID().toString(),val url:String,val fileName:String,val progress:Int=0,val total:Long=0,val status:String="Queued",val speedText:String="Waiting",val type:String="Video")
 
 class DownloaderViewModel(app:Application):AndroidViewModel(app){
  private val _items=MutableStateFlow<List<DownloadItem>>(emptyList())

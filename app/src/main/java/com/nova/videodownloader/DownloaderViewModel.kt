@@ -21,6 +21,22 @@ class DownloaderViewModel(app:Application):AndroidViewModel(app){
  private val jobs=mutableMapOf<String,Job>()
  private val client=OkHttpClient.Builder().followRedirects(true).build()
 
+ fun analyzeAndAdd(input:String){
+  viewModelScope.launch(Dispatchers.IO){
+   val candidates=runCatching{MediaResolver().resolve(input)}.getOrDefault(emptyList())
+   if(candidates.isEmpty()){
+    val item=DownloadItem(url=input,fileName=guessName(input),status="Failed: no public media URL found",type="Page")
+    _items.value=listOf(item)+_items.value;saveHistory()
+   }else{
+    candidates.take(10).forEach{candidate->
+     val item=DownloadItem(url=candidate.url,fileName=guessName(candidate.url),type=candidate.type)
+     _items.value=listOf(item)+_items.value
+     start(item)
+    }
+    saveHistory()
+   }
+  }
+ }
  fun add(url:String){
   if(url.isBlank())return
   val item=DownloadItem(url=url,fileName=guessName(url))

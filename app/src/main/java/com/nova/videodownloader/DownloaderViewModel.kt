@@ -16,6 +16,7 @@ import kotlin.math.max
 data class DownloadItem(val id:String=UUID.randomUUID().toString(),val url:String,val fileName:String,val progress:Int=0,val total:Long=0,val status:String="Queued",val speedText:String="Waiting",val type:String="Video")
 
 class DownloaderViewModel(app:Application):AndroidViewModel(app){
+ private val prefs=app.getSharedPreferences("nova_history",0)
  private val _items=MutableStateFlow<List<DownloadItem>>(emptyList())
  val items=_items.asStateFlow()
  private val jobs=mutableMapOf<String,Job>()
@@ -37,6 +38,8 @@ class DownloaderViewModel(app:Application):AndroidViewModel(app){
    }
   }
  }
+ fun clearHistory(){jobs.values.forEach{it.cancel()};jobs.clear();_items.value=emptyList();saveHistory()}
+ fun remove(id:String){jobs.remove(id)?.cancel();_items.value=_items.value.filterNot{it.id==id};saveHistory()}
  fun add(url:String){
   if(url.isBlank())return
   val item=DownloadItem(url=url,fileName=guessName(url))
@@ -88,7 +91,8 @@ class DownloaderViewModel(app:Application):AndroidViewModel(app){
    catch(e:Exception){update(item.id){it.copy(status="Failed: "+(e.message?:"Unknown error"))}}
   }
  }
- private fun update(id:String,f:(DownloadItem)->DownloadItem){_items.value=_items.value.map{if(it.id==id)f(it)else it}}
+ private fun update(id:String,f:(DownloadItem)->DownloadItem){_items.value=_items.value.map{if(it.id==id)f(it)else it};saveHistory()}
+ private fun saveHistory(){prefs.edit().putString("items",_items.value.take(100).joinToString("\n"){it.id+"|"+it.url+"|"+it.fileName+"|"+it.progress+"|"+it.total+"|"+it.status.replace("|","/")+"|"+it.speedText.replace("|","/")+"|"+it.type}).apply()}
  private fun guessName(url:String):String=runCatching{
   val p=java.net.URI(url).path.substringAfterLast('/')
   if(p.isBlank())"video_"+System.currentTimeMillis()+".mp4" else safeName(p)

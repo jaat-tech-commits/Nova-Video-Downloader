@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,6 +33,9 @@ class MainActivity:ComponentActivity(){
  var tab by remember{mutableIntStateOf(0)}
  val items by vm.items.collectAsState()
  val context=LocalContext.current
+ val browser=rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()){result->
+  result.data?.getStringExtra("media_url")?.let{vm.add(it)}
+ }
 
  LaunchedEffect(Unit){
   if(url.isBlank()){
@@ -63,7 +67,7 @@ class MainActivity:ComponentActivity(){
  }
 }
 
-@Composable private fun Home(url:String,onUrl:(String)->Unit,onAnalyze:()->Unit,onDirect:()->Unit){
+@Composable private fun Home(url:String,onUrl:(String)->Unit,onAnalyze:()->Unit,onDirect:()->Unit,onBrowser:()->Unit){
  Text("Download video & audio",style=MaterialTheme.typography.headlineSmall)
  Text("Paste a page URL and Nova will try to discover public media sources.",style=MaterialTheme.typography.bodyMedium)
  Spacer(Modifier.height(14.dp))
@@ -75,6 +79,9 @@ class MainActivity:ComponentActivity(){
  Spacer(Modifier.height(8.dp))
  OutlinedButton(onDirect,enabled=url.startsWith("http://")||url.startsWith("https://"),modifier=Modifier.fillMaxWidth()){
   Icon(Icons.Default.Download,null);Spacer(Modifier.width(8.dp));Text("Direct Download")
+ }
+ OutlinedButton(onBrowser,modifier=Modifier.fillMaxWidth()){
+  Icon(Icons.Default.Language,null);Spacer(Modifier.width(8.dp));Text("Open In-App Browser & Detect")
  }
  Spacer(Modifier.height(18.dp))
  Feature("Smart extraction","Looks for og:video, video/source tags and common MP4/WebM/HLS URLs.")
